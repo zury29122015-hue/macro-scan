@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import express from 'express';
-import Anthropic from '@anthropic-ai/sdk';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -52,9 +52,9 @@ function extractJson(text) {
 }
 
 app.post('/api/analyze', async (req, res) => {
-  if (!process.env.ANTHROPIC_API_KEY) {
+  if (!process.env.GEMINI_API_KEY) {
     return res.status(500).json({
-      error: 'Falta configurar ANTHROPIC_API_KEY en el archivo .env del servidor.'
+      error: 'Falta configurar GEMINI_API_KEY en el archivo .env del servidor.'
     });
   }
 
@@ -64,39 +64,27 @@ app.post('/api/analyze', async (req, res) => {
   }
 
   try {
-    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
-    const response = await anthropic.messages.create({
-      model: 'claude-sonnet-5',
-      max_tokens: 1500,
-      system: SYSTEM_PROMPT,
-      messages: [
-        {
-          role: 'user',
-          content: [
-            {
-              type: 'image',
-              source: {
-                type: 'base64',
-                media_type: mediaType,
-                data: imageBase64
-              }
-            },
-            {
-              type: 'text',
-              text: 'Analiza esta comida y devuelve el JSON de macronutrientes como se indicó.'
-            }
-          ]
-        }
-      ]
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-2.0-flash',
+      systemInstruction: SYSTEM_PROMPT,
+      generationConfig: {
+        responseMimeType: 'application/json'
+      }
     });
 
-    const textBlock = response.content.find((block) => block.type === 'text');
-    if (!textBlock) {
-      throw new Error('El modelo no devolvió texto.');
-    }
+    const result = await model.generateContent([
+      {
+        inlineData: {
+          mimeType: mediaType,
+          data: imageBase64
+        }
+      },
+      { text: 'Analiza esta comida y devuelve el JSON de macronutrientes como se indicó.' }
+    ]);
 
-    const parsed = extractJson(textBlock.text);
+    const text = result.response.text();
+    const parsed = extractJson(text);
     res.json(parsed);
   } catch (err) {
     console.error('Error analizando la imagen:', err);
