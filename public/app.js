@@ -22,16 +22,41 @@ function hideStatus() {
   statusEl.textContent = '';
 }
 
+const MAX_DIMENSION = 1280;
+const JPEG_QUALITY = 0.8;
+
+function resizeImage(dataUrl) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      let { width, height } = img;
+      if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+        const scale = MAX_DIMENSION / Math.max(width, height);
+        width = Math.round(width * scale);
+        height = Math.round(height * scale);
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL('image/jpeg', JPEG_QUALITY));
+    };
+    img.onerror = reject;
+    img.src = dataUrl;
+  });
+}
+
 function handleFile(file) {
   if (!file) return;
   const reader = new FileReader();
-  reader.onload = () => {
-    const dataUrl = reader.result;
-    const [header, base64] = dataUrl.split(',');
+  reader.onload = async () => {
+    const resizedDataUrl = await resizeImage(reader.result);
+    const [header, base64] = resizedDataUrl.split(',');
     const mediaType = header.match(/data:(.*);base64/)[1];
 
     currentImage = { base64, mediaType };
-    previewImg.src = dataUrl;
+    previewImg.src = resizedDataUrl;
     previewImg.hidden = false;
     previewPlaceholder.hidden = true;
     analyzeBtn.disabled = false;
