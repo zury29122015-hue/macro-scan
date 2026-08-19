@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MacroScan · Macros de tu comida</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>🍽️ MacroScan</h1>
+      <p>Toma o sube una foto de tu comida y descubre sus macronutrientes.</p>
+    </header>
+
+    <main>
+      <section class="capture-card" id="captureCard">
+        <div class="preview" id="previewWrap">
+          <img id="previewImg" alt="Vista previa de la comida" hidden />
+          <div class="preview-placeholder" id="previewPlaceholder">
+            <span class="icon">📷</span>
+            <span>Ninguna foto seleccionada</span>
+          </div>
+        </div>
+
+        <div class="capture-actions">
+          <label class="btn btn-primary" for="cameraInput">
+            📸 Tomar foto
+          </label>
+          <input id="cameraInput" type="file" accept="image/*" capture="environment" hidden />
+
+          <label class="btn btn-secondary" for="fileInput">
+            🖼️ Elegir de galería
+          </label>
+          <input id="fileInput" type="file" accept="image/*" hidden />
+        </div>
+
+        <button class="btn btn-analyze" id="analyzeBtn" disabled>
+          Analizar macronutrientes
+        </button>
+      </section>
+
+      <section class="results" id="results" hidden>
+        <div class="totals" id="totals"></div>
+        <div class="notes" id="notes"></div>
+        <h2>Alimentos detectados</h2>
+        <div class="items" id="items"></div>
+      </section>
+
+      <div class="status" id="status" hidden></div>
+    </main>
+
+    <footer>
+      <p>Las estimaciones son aproximadas y generadas por IA a partir de la imagen.</p>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
